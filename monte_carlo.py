@@ -41,5 +41,20 @@ def visualize_monte_carlo_pi(n_points=1000):
     plt.legend()
     plt.show()
 
+def plot_convergence(max_points=1000000, step=10000):
+    n_points_list = range(step, max_points + 1, step)
+    pi_estimates = [monte_carlo_pi(n) for n in n_points_list]
+    
+    plt.figure(figsize=(10, 6))
+    plt.plot(n_points_list, pi_estimates, label='Estimated π')
+    plt.axhline(y=np.pi, color='r', linestyle='--', label='True π')
+    plt.xlabel('Number of Random Points')
+    plt.ylabel('Estimated π')
+    plt.title('Convergence of Monte Carlo π Estimate')
+    plt.legend()
+    plt.show()
+
 # Example usage
-visualize_monte_carlo_pi(1000)
+# visualize_monte_carlo_pi(1000)
+
+plot_convergence()
