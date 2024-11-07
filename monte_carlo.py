@@ -73,9 +73,58 @@ def plot_convergence_with_error(max_points=10000, step=100, n_trials=30):
     plt.legend()
     plt.show()
 
+def incremental_monte_carlo_pi(n_total_points, step=500):
+    points_inside_circle = 0   # Running count of points inside the circle
+    n_points_list = []         # Track number of points at each step
+    pi_estimates = []          # Track the π estimates
+    errors = []                # Track the standard error
+
+    # Variables for calculating incremental mean and variance
+    estimates_sum = 0
+    estimates_square_sum = 0
+    current_n = 0
+
+    for _ in range(0, n_total_points, step):
+        # Generate `step` new random points
+        x_points = np.random.rand(step)
+        y_points = np.random.rand(step)
+
+        # Check if points are inside the quarter circle
+        inside_circle = np.sum(x_points**2 + y_points**2 <= 1)
+        points_inside_circle += inside_circle
+        current_n += step
+        
+        # Update π estimate with current points
+        pi_estimate = 4 * points_inside_circle / current_n
+        pi_estimates.append(pi_estimate)
+        n_points_list.append(current_n)
+        
+        # Incremental variance calculation
+        estimates_sum += pi_estimate
+        estimates_square_sum += pi_estimate**2
+        if current_n > 1:
+            mean_estimate = estimates_sum / (current_n / step)
+            variance_estimate = (estimates_square_sum / (current_n / step)) - mean_estimate**2
+            standard_error = np.sqrt(variance_estimate / (current_n / step))
+        else:
+            standard_error = 0
+        errors.append(standard_error)
+
+    # Plot the convergence with error bars
+    plt.figure(figsize=(10, 6))
+    plt.errorbar(n_points_list, pi_estimates, yerr=errors, fmt='o', markersize=3, label='Estimated π', capsize=3)
+    plt.axhline(y=np.pi, color='r', linestyle='--', label='True π')
+    plt.xlabel('Number of Random Points')
+    plt.ylabel('Estimated π')
+    plt.title('Incremental Monte Carlo π Estimate with Error Bars')
+    plt.legend()
+    plt.show()
+
 # Example usage
 # visualize_monte_carlo_pi(1000)
 
 # plot_convergence()
 
-plot_convergence_with_error()
+# plot_convergence_with_error()
+
+incremental_monte_carlo_pi(10000, step=100)
