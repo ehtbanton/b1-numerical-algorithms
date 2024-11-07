@@ -54,7 +54,28 @@ def plot_convergence(max_points=1000000, step=10000):
     plt.legend()
     plt.show()
 
+def monte_carlo_pi_with_error(n_points, n_trials=100):
+    estimates = [monte_carlo_pi(n_points) for _ in range(n_trials)]
+    pi_mean = np.mean(estimates)
+    pi_std_error = np.std(estimates) / np.sqrt(n_trials)  # Standard error of the mean
+    return pi_mean, pi_std_error
+
+def plot_convergence_with_error(max_points=10000, step=100, n_trials=30):
+    n_points_list = range(step, max_points + 1, step)
+    pi_estimates, errors = zip(*[monte_carlo_pi_with_error(n, n_trials) for n in n_points_list])
+    
+    plt.figure(figsize=(10, 6))
+    plt.errorbar(n_points_list, pi_estimates, yerr=errors, fmt='o', markersize=2, label='Estimated π')
+    plt.axhline(y=np.pi, color='r', linestyle='--', label='True π')
+    plt.xlabel('Number of Random Points')
+    plt.ylabel('Estimated π')
+    plt.title('Convergence of Monte Carlo π Estimate with Error Bars')
+    plt.legend()
+    plt.show()
+
 # Example usage
 # visualize_monte_carlo_pi(1000)
 
-plot_convergence()
+# plot_convergence()
+
+plot_convergence_with_error()
