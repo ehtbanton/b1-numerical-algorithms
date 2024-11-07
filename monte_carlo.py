@@ -73,58 +73,46 @@ def plot_convergence_with_error(max_points=10000, step=100, n_trials=30):
     plt.legend()
     plt.show()
 
-def incremental_monte_carlo_pi(n_total_points, step=500):
-    points_inside_circle = 0   # Running count of points inside the circle
-    n_points_list = []         # Track number of points at each step
-    pi_estimates = []          # Track the π estimates
-    errors = []                # Track the standard error
-
-    # Variables for calculating incremental mean and variance
-    estimates_sum = 0
-    estimates_square_sum = 0
-    current_n = 0
-
-    for _ in range(0, n_total_points, step):
-        # Generate `step` new random points
-        x_points = np.random.rand(step)
-        y_points = np.random.rand(step)
-
-        # Check if points are inside the quarter circle
-        inside_circle = np.sum(x_points**2 + y_points**2 <= 1)
-        points_inside_circle += inside_circle
-        current_n += step
+def improved_plot_convergence_with_error(max_points=10000, step=100, n_trials=30):
+    n_points_list = np.arange(step, max_points + 1, step)
+    
+    # Initialize arrays to store results
+    all_estimates = np.zeros(len(n_points_list))
+    all_errors = np.zeros(len(n_points_list))
+    
+    # Generate cumulative results
+    running_points = np.random.rand(max_points, 2)
+    running_inside = np.sum(running_points**2, axis=1) <= 1
+    cumsum_inside = np.cumsum(running_inside)
+    
+    # Calculate estimates and errors for each point count
+    for i, n in enumerate(n_points_list):
+        # Use the cumulative sum for the main estimate
+        main_estimate = 4 * cumsum_inside[n-1] / n
         
-        # Update π estimate with current points
-        pi_estimate = 4 * points_inside_circle / current_n
-        pi_estimates.append(pi_estimate)
-        n_points_list.append(current_n)
+        # Only run multiple trials for error estimation
+        estimates = np.array([monte_carlo_pi(n) for _ in range(n_trials)])
+        mean_estimate = np.mean(estimates)
         
-        # Incremental variance calculation
-        estimates_sum += pi_estimate
-        estimates_square_sum += pi_estimate**2
-        if current_n > 1:
-            mean_estimate = estimates_sum / (current_n / step)
-            variance_estimate = (estimates_square_sum / (current_n / step)) - mean_estimate**2
-            standard_error = np.sqrt(variance_estimate / (current_n / step))
-        else:
-            standard_error = 0
-        errors.append(standard_error)
-
-    # Plot the convergence with error bars
+        # Use 95% confidence interval
+        z_score = 1.96
+        error = z_score * np.std(estimates) / np.sqrt(n_trials)
+        
+        all_estimates[i] = mean_estimate
+        all_errors[i] = error
+    
     plt.figure(figsize=(10, 6))
-    plt.errorbar(n_points_list, pi_estimates, yerr=errors, fmt='o', markersize=3, label='Estimated π', capsize=3)
+    plt.errorbar(n_points_list, all_estimates, yerr=all_errors, fmt='o', 
+                markersize=2, label='Estimated π', alpha=0.5)
     plt.axhline(y=np.pi, color='r', linestyle='--', label='True π')
     plt.xlabel('Number of Random Points')
     plt.ylabel('Estimated π')
-    plt.title('Incremental Monte Carlo π Estimate with Error Bars')
+    plt.title('Convergence of Monte Carlo π Estimate with 95% Confidence Intervals')
     plt.legend()
     plt.show()
 
-# Example usage
 # visualize_monte_carlo_pi(1000)
 
 # plot_convergence()
 
-# plot_convergence_with_error()
-
-incremental_monte_carlo_pi(10000, step=100)
+improved_plot_convergence_with_error(max_points=10000, step=100, n_trials=30)
