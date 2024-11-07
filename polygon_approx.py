@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from matplotlib.animation import FuncAnimation
+from matplotlib.animation import FuncAnimation, PillowWriter
 
 def calculate_pi_polygon(n_sides):
     """Calculate pi approximation using inscribed and circumscribed polygons."""
@@ -18,8 +18,11 @@ def calculate_pi_polygon(n_sides):
     
     return (pi_inscribed + pi_circumscribed) / 2, pi_inscribed, pi_circumscribed
 
+# Set style for better-looking output
+# plt.style.use('seaborn')
+
 # Set up the figure and axis
-fig, ax = plt.subplots(figsize=(10, 10))
+fig, ax = plt.subplots(figsize=(10, 10), dpi=100)
 ax.set_aspect('equal')
 ax.set_xlim(-1.5, 1.5)
 ax.set_ylim(-1.5, 1.5)
@@ -70,6 +73,11 @@ def update(frame):
     text_pi.set_text(f'π ≈ {pi_estimate:.8f}\nTrue π ≈ {np.pi:.8f}\nError: {abs(pi_estimate - np.pi):.8f}')
     text_sides.set_text(f'Number of sides: {n_sides}')
     
+    # Add progress indicator during saving
+    if hasattr(update, 'pct'):
+        update.pct = frame / (n_frames + 1) * 100
+        print(f'Saving animation: {update.pct:.1f}%', end='\r')
+    
     return inscribed_line, circumscribed_line, text_pi, text_sides
 
 # Create animation
@@ -85,4 +93,13 @@ ani = FuncAnimation(
 )
 
 plt.title('Estimating π using Inscribed and Circumscribed Polygons')
+
+# Save animation as GIF
+print("Saving animation as GIF...")
+update.pct = 0
+writer = PillowWriter(fps=5)
+ani.save('pi_approximation.gif', writer=writer)
+print("\nAnimation saved as 'pi_approximation.gif'")
+
+# Display the animation in the notebook/window
 plt.show()
